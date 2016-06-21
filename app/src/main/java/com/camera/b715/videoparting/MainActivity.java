@@ -21,15 +21,20 @@ import android.widget.Button;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.concurrent.ArrayBlockingQueue;
 
 public class MainActivity extends Activity implements SurfaceHolder.Callback
-, Camera.PreviewCallback{
+        , Camera.PreviewCallback {
 
     private static final String TAG = "liuchang";
     private static int MEDIA_TYPE_IMAGE = 0;
     private static int MEDIA_TYPE_VIDEO = 1;
+    private static int yuvqueuesize = 10;
+
+    public static ArrayBlockingQueue<byte[]> YUVQueue = new ArrayBlockingQueue<byte[]>(yuvqueuesize);
 
     private MediaRecorder mMediaRecorder;
     private Camera mCamera;
@@ -112,9 +117,8 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback
 
         mMediaCodec = MediaCodec.createEncoderByType("video/avc");
         mMediaCodec.configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
-        mSurfaceCodecInPut = mMediaCodec.createInputSurface();
-
-
+        mMediaCodec.start();
+        //mSurfaceCodecInPut = mMediaCodec.createInputSurface();
     }
 
     private boolean isRecording = false;
@@ -260,6 +264,12 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback
 
     @Override
     public void onPreviewFrame(byte[] data, Camera camera) {
+        ByteBuffer inputBuffers;
+        ByteBuffer outputBuffers;
+        int inputBufferIndex = mMediaCodec.dequeueInputBuffer(-1);
+        inputBuffers = mMediaCodec.getInputBuffer(inputBufferIndex);
+
+        outputBuffers = mMediaCodec.getOutputBuffer(inputBufferIndex);
 
     }
 }
